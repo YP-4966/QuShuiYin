@@ -31,6 +31,7 @@
     let currentTaskId = null;
     let selectedMethod = 'telea';
     let ws = null;
+    let pollTimer = null;
 
     // ── 初始化 ────────────────────────────────────────────
     async function init() {
@@ -131,6 +132,8 @@
 
     function resetUpload() {
         currentTaskId = null;
+        stopPolling();
+        if (ws) { try { ws.close(); } catch {} ws = null; }
         uploadZone.classList.remove('has-file');
         uploadContent.classList.remove('hidden');
         fileInfo.classList.add('hidden');
@@ -169,7 +172,7 @@
         btnDownload.classList.add('hidden');
         progressFill.style.width = '0%';
         progressPercent.textContent = '0%';
-        progressLabel.textContent = '准备处理...';
+        progressLabel.textContent = '排队中...';
         progressDetail.textContent = '';
 
         // 连接 WebSocket 接收进度
@@ -193,15 +196,31 @@
             });
             const data = await res.json();
 
+            if (data.error) {
+                updateProgress(0, '请求失败', data.error);
+                btnProcess.disabled = false;
+                btnProcess.querySelector('.btn-text').classList.remove('hidden');
+                btnProcess.querySelector('.btn-loading').classList.add('hidden');
+                return;
+            }
+
             if (data.status === 'completed') {
                 updateProgress(100, '处理完成！', '');
                 btnDownload.classList.remove('hidden');
+                btnProcess.disabled = false;
+                btnProcess.querySelector('.btn-text').classList.remove('hidden');
+                btnProcess.querySelector('.btn-loading').classList.add('hidden');
             } else if (data.status === 'failed') {
-                updateProgress(0, '处理失败', data.message || data.error || '未知错误');
+                updateProgress(0, '处理失败', data.message || '未知错误');
+                btnProcess.disabled = false;
+                btnProcess.querySelector('.btn-text').classList.remove('hidden');
+                btnProcess.querySelector('.btn-loading').classList.add('hidden');
+            } else {
+                // 已提交到后台，开始轮询进度
+                startPolling(currentTaskId);
             }
         } catch (err) {
             updateProgress(0, '请求失败', err.message);
-        } finally {
             btnProcess.disabled = false;
             btnProcess.querySelector('.btn-text').classList.remove('hidden');
             btnProcess.querySelector('.btn-loading').classList.add('hidden');
@@ -215,22 +234,71 @@
         }
     });
 
+    // ── 轮询进度 ──────────────────────────────────────────
+    function startPolling(taskId) {
+        stopPolling();
+        pollTimer = setInterval(async () => {
+            try {
+                const res = await fetch(`/api/task/${taskId}`);
+                const data = await res.json();
+                updateProgress(data.progress, data.message, '');
+
+                if (data.status === 'completed') {
+                    stopPolling();
+                    btnDownload.classList.remove('hidden');
+                    btnProcess.disabled = false;
+                    btnProcess.querySelector('.btn-text').classList.remove('hidden');
+                    btnProcess.querySelector('.btn-loading').classList.add('hidden');
+                } else if (data.status === 'failed') {
+                    stopPolling();
+                    updateProgress(0, '处理失败', data.message || '未知错误');
+                    btnProcess.disabled = false;
+                    btnProcess.querySelector('.btn-text').classList.remove('hidden');
+                    btnProcess.querySelector('.btn-loading').classList.add('hidden');
+                }
+            } catch {}
+        }, 1500);
+    }
+
+    function stopPolling() {
+        if (pollTimer) {
+            clearInterval(pollTimer);
+            pollTimer = null;
+        }
+    }
+
     // ── WebSocket ─────────────────────────────────────────
     function connectWS(taskId) {
         if (ws) { try { ws.close(); } catch {} }
         const protocol = location.protocol === 'https:' ? 'wss:' : 'ws:';
-        ws = new WebSocket(`${protocol}//${location.host}/ws/progress/${taskId}`);
-        ws.onmessage = (e) => {
-            try {
-                const data = JSON.parse(e.data);
-                updateProgress(data.progress, data.message, '');
-                if (data.status === 'completed') {
-                    btnDownload.classList.remove('hidden');
-                }
-            } catch {}
-        };
-        ws.onerror = () => {};
-        ws.onclose = () => {};
+        let connected = false;
+        try {
+            ws = new WebSocket(`${protocol}//${location.host}/ws/progress/${taskId}`);
+            ws.onopen = () => { connected = true; };
+            ws.onmessage = (e) => {
+                try {
+                    const data = JSON.parse(e.data);
+                    updateProgress(data.progress, data.message, '');
+                    if (data.status === 'completed') {
+                        stopPolling();
+                        btnDownload.classList.remove('hidden');
+                        btnProcess.disabled = false;
+                        btnProcess.querySelector('.btn-text').classList.remove('hidden');
+                        btnProcess.querySelector('.btn-loading').classList.add('hidden');
+                    } else if (data.status === 'failed') {
+                        stopPolling();
+                    }
+                } catch {}
+            };
+            ws.onerror = () => {
+                if (!connected) startPolling(taskId);
+            };
+            ws.onclose = () => {
+                if (!connected) startPolling(taskId);
+            };
+        } catch {
+            startPolling(taskId);
+        }
     }
 
     function updateProgress(percent, label, detail) {

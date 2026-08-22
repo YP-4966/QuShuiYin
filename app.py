@@ -15,6 +15,7 @@ from pathlib import Path
 from typing import Optional
 from enum import Enum
 
+import threading
 import cv2
 import numpy as np
 from fastapi import FastAPI, UploadFile, File, Form, WebSocket, WebSocketDisconnect
@@ -316,13 +317,38 @@ async def upload_file(file: UploadFile = File(...)):
     }
 
 
+def _run_task(task: Task, method: str, area: tuple):
+    """后台线程执行处理任务"""
+    try:
+        if task.is_video:
+            result_path = process_video(task, method, area)
+        else:
+            result_img = process_image(task, method, area)
+            ext = Path(task.file_path).suffix
+            result_name = f"{task.task_id}_no_sub{ext}"
+            result_path = str(RESULT_DIR / result_name)
+            cv2.imwrite(result_path, result_img)
+
+        task.result_path = result_path
+        task.status = TaskStatus.COMPLETED
+        task.progress = 100
+        task.message = "处理完成！"
+    except Exception as e:
+        task.status = TaskStatus.FAILED
+        task.error = str(e)
+        task.message = f"处理失败: {e}"
+        traceback.print_exc()
+
+    _notify_ws(task)
+
+
 @app.post("/api/process/{task_id}")
 async def start_process(
     task_id: str,
     method: str = Form("telea"),
     sub_area: Optional[str] = Form(None),
 ):
-    """开始处理任务"""
+    """开始处理任务（异步，立即返回）"""
     task = tasks.get(task_id)
     if not task:
         return JSONResponse({"error": "任务不存在"}, status_code=404)
@@ -342,30 +368,13 @@ async def start_process(
 
     task.status = TaskStatus.PROCESSING
     task.progress = 0
-    task.message = "开始处理..."
+    task.message = "排队中..."
     _notify_ws(task)
 
-    try:
-        if task.is_video:
-            result_path = process_video(task, method, area)
-        else:
-            result_img = process_image(task, method, area)
-            ext = Path(task.file_path).suffix
-            result_name = f"{task_id}_no_sub{ext}"
-            result_path = str(RESULT_DIR / result_name)
-            cv2.imwrite(result_path, result_img)
+    # 在后台线程中执行处理，立即返回
+    t = threading.Thread(target=_run_task, args=(task, method, area), daemon=True)
+    t.start()
 
-        task.result_path = result_path
-        task.status = TaskStatus.COMPLETED
-        task.progress = 100
-        task.message = "处理完成！"
-    except Exception as e:
-        task.status = TaskStatus.FAILED
-        task.error = str(e)
-        task.message = f"处理失败: {e}"
-        traceback.print_exc()
-
-    _notify_ws(task)
     return task.to_dict()
 
 
