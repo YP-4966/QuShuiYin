@@ -7,6 +7,7 @@ from typing import Optional, Union
 
 from .detector import SubtitleDetector, WatermarkDetector
 from .inpainter import Inpainter, InpaintMethod
+from .advanced_inpainter import AdvancedInpainter, InpaintQuality
 
 
 class ImageProcessor:
@@ -16,6 +17,7 @@ class ImageProcessor:
         self,
         inpaint_method: str = "ns",
         inpaint_radius: int = 5,
+        inpaint_quality: str = "balanced",
         subtitle_bottom_ratio: float = 0.25,
         subtitle_sensitivity: float = 0.7,
         watermark_sensitivity: float = 0.5,
@@ -24,12 +26,28 @@ class ImageProcessor:
         Args:
             inpaint_method: 修复算法 ("telea" 或 "ns")
             inpaint_radius: 修复半径
+            inpaint_quality: 修复质量 ("fast", "balanced", "high")
+                - fast: 基础 NS inpainting
+                - balanced: 多尺度 + 边缘引导
+                - high: 全部高级技术组合
             subtitle_bottom_ratio: 字幕检测的底部区域比例
             subtitle_sensitivity: 字幕检测灵敏度
             watermark_sensitivity: 水印检测灵敏度
         """
+        # 基础修复器 (作为 fallback)
         method = InpaintMethod.NS if inpaint_method == "ns" else InpaintMethod.TELEA
         self.inpainter = Inpainter(method=method, radius=inpaint_radius)
+
+        # 增强型修复器
+        quality_map = {
+            "fast": InpaintQuality.FAST,
+            "balanced": InpaintQuality.BALANCED,
+            "high": InpaintQuality.HIGH,
+        }
+        self.advanced_inpainter = AdvancedInpainter(
+            quality=quality_map.get(inpaint_quality, InpaintQuality.BALANCED)
+        )
+
         self.subtitle_detector = SubtitleDetector(
             bottom_ratio=subtitle_bottom_ratio,
             sensitivity=subtitle_sensitivity,
@@ -62,7 +80,7 @@ class ImageProcessor:
     def remove_subtitle_from_frame(self, frame: np.ndarray, output_path: str) -> str:
         """从帧中去除字幕并保存"""
         mask = self.subtitle_detector.detect(frame)
-        result = self.inpainter.inpaint(frame, mask)
+        result = self.advanced_inpainter.inpaint(frame, mask)
         cv2.imwrite(output_path, result)
         return output_path
 
@@ -94,7 +112,7 @@ class ImageProcessor:
         else:
             mask = self.watermark_detector.detect(frame)
 
-        result = self.inpainter.inpaint(frame, mask)
+        result = self.advanced_inpainter.inpaint(frame, mask)
         cv2.imwrite(output_path, result)
         return output_path
 
@@ -127,7 +145,7 @@ class ImageProcessor:
         combined_mask = cv2.bitwise_or(subtitle_mask, watermark_mask)
 
         # 修复
-        result = self.inpainter.inpaint(frame, combined_mask)
+        result = self.advanced_inpainter.inpaint(frame, combined_mask)
         cv2.imwrite(output_path, result)
         return output_path
 

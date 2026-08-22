@@ -22,6 +22,7 @@ class VideoProcessor:
         self,
         inpaint_method: str = "ns",
         inpaint_radius: int = 5,
+        inpaint_quality: str = "balanced",
         subtitle_bottom_ratio: float = 0.25,
         subtitle_sensitivity: float = 0.7,
         watermark_sensitivity: float = 0.5,
@@ -29,6 +30,7 @@ class VideoProcessor:
         self.image_processor = ImageProcessor(
             inpaint_method=inpaint_method,
             inpaint_radius=inpaint_radius,
+            inpaint_quality=inpaint_quality,
             subtitle_bottom_ratio=subtitle_bottom_ratio,
             subtitle_sensitivity=subtitle_sensitivity,
             watermark_sensitivity=watermark_sensitivity,
@@ -188,7 +190,7 @@ class VideoProcessor:
 
             # 修复
             if cv2.countNonZero(mask) > 0:
-                result = self.image_processor.inpainter.inpaint(frame, mask)
+                result = self.image_processor.advanced_inpainter.inpaint(frame, mask)
             else:
                 result = frame
 

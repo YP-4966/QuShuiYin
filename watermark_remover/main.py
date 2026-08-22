@@ -34,6 +34,7 @@ def get_processor(args):
     kwargs = {
         "inpaint_method": args.method,
         "inpaint_radius": args.radius,
+        "inpaint_quality": args.inpaint_quality,
         "subtitle_bottom_ratio": args.bottom_ratio,
         "subtitle_sensitivity": args.sensitivity,
     }
@@ -103,6 +104,12 @@ def main():
         help="修复算法 (默认: ns)"
     )
     common.add_argument("--radius", type=int, default=5, help="修复半径 (默认: 5)")
+    common.add_argument(
+        "--inpaint-quality",
+        choices=["fast", "balanced", "high"],
+        default="balanced",
+        help="修复质量: fast(基础NS) / balanced(多尺度+边缘引导) / high(全技术组合) (默认: balanced)"
+    )
     common.add_argument(
         "--bottom-ratio", type=float, default=0.25,
         help="字幕检测的底部区域比例 (默认: 0.25)"
