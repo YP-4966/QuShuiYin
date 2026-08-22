@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VSR Web - AI 去字幕</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <!-- 顶部导航 -->
+    <header class="header">
+        <div class="header-left">
+            <div class="logo">
+                <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
+                    <rect width="28" height="28" rx="6" fill="#6C5CE7"/>
+                    <path d="M7 14L12 9L17 14L12 19Z" fill="white" opacity="0.9"/>
+                    <path d="M11 14L16 9L21 14L16 19Z" fill="white" opacity="0.6"/>
+                </svg>
+                <span class="logo-text">VSR Web</span>
+            </div>
+            <span class="version-badge">v1.0</span>
+        </div>
+        <div class="header-right">
+            <span class="status-dot" id="engineStatus"></span>
+            <span class="status-text" id="engineText">检测引擎...</span>
+        </div>
+    </header>
+
+    <main class="main">
+        <!-- 左侧：上传与预览 -->
+        <div class="panel left-panel">
+            <!-- 上传区域 -->
+            <div class="upload-zone" id="uploadZone">
+                <input type="file" id="fileInput" accept="video/*,image/*" hidden>
+                <div class="upload-content" id="uploadContent">
+                    <svg width="48" height="48" viewBox="0 0 48 48" fill="none">
+                        <circle cx="24" cy="24" r="23" stroke="#6C5CE7" stroke-width="2" stroke-dasharray="4 4"/>
+                        <path d="M24 16V32M16 24H32" stroke="#6C5CE7" stroke-width="2" stroke-linecap="round"/>
+                    </svg>
+                    <p class="upload-title">拖拽文件到此处</p>
+                    <p class="upload-subtitle">或点击选择文件</p>
+                    <p class="upload-hint">支持 MP4 / MOV / AVI / JPG / PNG 等格式</p>
+                </div>
+                <!-- 文件信息 -->
+                <div class="file-info hidden" id="fileInfo">
+                    <div class="file-icon" id="fileIcon"></div>
+                    <div class="file-details">
+                        <span class="file-name" id="fileName"></span>
+                        <span class="file-size" id="fileSize"></span>
+                    </div>
+                    <button class="btn-remove" id="btnRemove" title="移除文件">✕</button>
+                </div>
+            </div>
+
+            <!-- 预览区 -->
+            <div class="preview-area" id="previewArea">
+                <video id="videoPreview" class="preview-media hidden" controls></video>
+                <img id="imagePreview" class="preview-media hidden" alt="预览">
+                <div class="preview-placeholder" id="previewPlaceholder">
+                    <svg width="64" height="64" viewBox="0 0 64 64" fill="none" opacity="0.3">
+                        <rect x="8" y="12" width="48" height="36" rx="4" stroke="currentColor" stroke-width="2"/>
+                        <circle cx="22" cy="26" r="4" stroke="currentColor" stroke-width="2"/>
+                        <path d="M8 40L20 30L32 38L44 26L56 36" stroke="currentColor" stroke-width="2"/>
+                    </svg>
+                    <p>预览区域</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- 右侧：控制面板 -->
+        <div class="panel right-panel">
+            <h2 class="panel-title">处理设置</h2>
+
+            <!-- 处理模式 -->
+            <div class="setting-group">
+                <label class="setting-label">修复算法</label>
+                <div class="mode-grid">
+                    <button class="mode-btn active" data-method="telea" title="Telea 算法 - 速度快">
+                        <span class="mode-icon">⚡</span>
+                        <span class="mode-name">Telea</span>
+                        <span class="mode-desc">快速修复</span>
+                    </button>
+                    <button class="mode-btn" data-method="ns" title="Navier-Stokes 算法 - 质量好">
+                        <span class="mode-icon">🎨</span>
+                        <span class="mode-name">NS</span>
+                        <span class="mode-desc">精细修复</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- 字幕区域（可选） -->
+            <div class="setting-group">
+                <label class="setting-label">
+                    字幕区域
+                    <span class="optional-badge">可选</span>
+                </label>
+                <p class="setting-hint">留空则自动检测全画面文字</p>
+                <div class="area-inputs">
+                    <div class="input-row">
+                        <label>Y 起始 %</label>
+                        <input type="number" id="areaYMin" min="0" max="100" value="85" class="area-input">
+                    </div>
+                    <div class="input-row">
+                        <label>Y 结束 %</label>
+                        <input type="number" id="areaYMax" min="0" max="100" value="100" class="area-input">
+                    </div>
+                    <div class="input-row">
+                        <label>X 起始 %</label>
+                        <input type="number" id="areaXMin" min="0" max="100" value="10" class="area-input">
+                    </div>
+                    <div class="input-row">
+                        <label>X 结束 %</label>
+                        <input type="number" id="areaXMax" min="0" max="100" value="90" class="area-input">
+                    </div>
+                </div>
+                <label class="checkbox-label">
+                    <input type="checkbox" id="useArea">
+                    <span>限定字幕区域（推荐视频使用）</span>
+                </label>
+            </div>
+
+            <!-- 处理按钮 -->
+            <button class="btn-process" id="btnProcess" disabled>
+                <span class="btn-text">开始处理</span>
+                <span class="btn-loading hidden">
+                    <span class="spinner"></span> 处理中...
+                </span>
+            </button>
+
+            <!-- 进度条 -->
+            <div class="progress-container hidden" id="progressContainer">
+                <div class="progress-header">
+                    <span class="progress-label" id="progressLabel">准备中...</span>
+                    <span class="progress-percent" id="progressPercent">0%</span>
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progressFill"></div>
+                </div>
+                <p class="progress-detail" id="progressDetail"></p>
+            </div>
+
+            <!-- 下载按钮 -->
+            <button class="btn-download hidden" id="btnDownload">
+                <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                    <path d="M10 3V13M10 13L6 9M10 13L14 9" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                    <path d="M3 15V16C3 16.5523 3.44772 17 4 17H16C16.5523 17 17 16.5523 17 16V15" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                </svg>
+                下载结果
+            </button>
+
+            <!-- 功能说明 -->
+            <div class="info-card">
+                <h3>功能说明</h3>
+                <ul>
+                    <li><strong>自动检测</strong> - AI 自动识别画面中的文字/字幕</li>
+                    <li><strong>智能修复</strong> - 自动填补被去除文字的区域</li>
+                    <li><strong>保留音频</strong> - 视频处理后保留原始音轨</li>
+                    <li><strong>多格式</strong> - 支持主流视频和图片格式</li>
+                </ul>
+            </div>
+        </div>
+    </main>
+
+    <script src="/static/app.js"></script>
+</body>
+</html>
