@@ -517,10 +517,7 @@ body {
     <span>开拍</span>
   </div>
   <span class="tag">AI 消除</span>
-  <div class="right">
-    <button class="btn-vip" style="display:none"> 立即开通</button>
-    <div class="avatar">👤</div>
-  </div>
+  <div class="right"></div>
 </div>
 
 <!-- Layout -->
@@ -545,7 +542,7 @@ body {
 
     <!-- Task bar -->
     <div class="task-bar">
-      <span>本次任务（</span><span class="count" id="taskCount">0</span><span>/9）</span>
+      <span>本次任务（</span><span class="count" id="taskCount">0</span><span>）</span>
       <button class="btn-add" id="btnAdd">+ 继续添加</button>
       <div class="task-items" id="taskItems"></div>
     </div>
@@ -564,7 +561,6 @@ body {
         <div class="mode-item" data-mode="smart-pro">
           <div class="icon-box">⚡</div>
           <span class="label">智能全消Pro</span>
-          <span class="svip-tag">SVIP</span>
         </div>
         <div class="mode-item" data-mode="watermark">
           <div class="icon-box">T</div>
@@ -637,7 +633,6 @@ body {
     <!-- Actions -->
     <div class="action-section">
       <button class="btn-process" id="btnProcess" disabled>开始处理</button>
-      <div class="free-count">今日剩余免费次数：9</div>
     </div>
   </div>
 </div>
@@ -721,9 +716,7 @@ previewZone.addEventListener('drop', e => {
 });
 
 function addFiles(files) {
-  const maxTasks = 9 - state.files.length;
-  if (maxTasks <= 0) { showToast('最多添加 9 个任务'); return; }
-  const valid = files.slice(0, maxTasks);
+  const valid = files;
   valid.forEach(f => {
     if (f.type.startsWith('image/') || f.type.startsWith('video/')) {
       state.files.push({ file: f, type: f.type.startsWith('video/') ? 'video' : 'image', status: 'pending' });
