@@ -3,319 +3,630 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>QuShuiYin - AI 去字幕</title>
+<title>QuShuiYin - AI 消除字幕水印</title>
 <style>
 :root {
-  --bg: #0a0a0f;
-  --surface: #12121a;
-  --surface2: #1a1a25;
-  --border: #2a2a3a;
-  --text: #e8e8f0;
-  --text2: #8888a0;
-  --accent: #6c5ce7;
-  --accent2: #a29bfe;
-  --success: #00b894;
-  --danger: #e17055;
-  --radius: 12px;
+  --bg: #f5f6fa;
+  --surface: #ffffff;
+  --surface2: #f0f1f5;
+  --border: #e4e6eb;
+  --text: #1a1a2e;
+  --text2: #6b7280;
+  --text3: #9ca3af;
+  --accent: #5b6ef5;
+  --accent-light: #eef0ff;
+  --accent-hover: #4a5ce0;
+  --success: #10b981;
+  --danger: #ef4444;
+  --radius: 10px;
+  --shadow: 0 1px 3px rgba(0,0,0,0.06);
+  --shadow-lg: 0 4px 16px rgba(0,0,0,0.08);
 }
 * { margin: 0; padding: 0; box-sizing: border-box; }
 body {
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Microsoft YaHei', sans-serif;
   background: var(--bg);
   color: var(--text);
   min-height: 100vh;
+  overflow: hidden;
 }
-.app {
-  max-width: 960px;
-  margin: 0 auto;
-  padding: 24px 16px;
-}
-header {
-  text-align: center;
-  padding: 32px 0;
-}
-header h1 {
-  font-size: 2rem;
-  background: linear-gradient(135deg, var(--accent), var(--accent2));
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  margin-bottom: 8px;
-}
-header p { color: var(--text2); font-size: 0.95rem; }
-.card {
+
+/* ===== Header ===== */
+.header {
+  height: 52px;
   background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  padding: 24px;
-  margin-bottom: 20px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  padding: 0 20px;
+  gap: 12px;
+  position: relative;
+  z-index: 10;
 }
-.card-title {
-  font-size: 1rem;
-  font-weight: 600;
-  margin-bottom: 16px;
+.header .logo {
   display: flex;
   align-items: center;
   gap: 8px;
+  font-weight: 700;
+  font-size: 1.1rem;
 }
-.tabs {
-  display: flex;
-  gap: 4px;
-  margin-bottom: 20px;
-  background: var(--surface2);
-  border-radius: 8px;
-  padding: 4px;
-}
-.tab {
-  flex: 1;
-  padding: 10px;
-  text-align: center;
-  border-radius: 6px;
-  cursor: pointer;
-  font-size: 0.9rem;
-  transition: all 0.2s;
-  color: var(--text2);
-  border: none;
-  background: none;
-}
-.tab.active {
+.header .logo-icon {
+  width: 28px;
+  height: 28px;
   background: var(--accent);
-  color: white;
-  font-weight: 600;
-}
-.tab:hover:not(.active) { color: var(--text); }
-.upload-zone {
-  border: 2px dashed var(--border);
-  border-radius: var(--radius);
-  padding: 48px 24px;
-  text-align: center;
-  cursor: pointer;
-  transition: all 0.3s;
-}
-.upload-zone:hover, .upload-zone.dragover {
-  border-color: var(--accent);
-  background: rgba(108,92,231,0.05);
-}
-.upload-zone .icon { font-size: 3rem; margin-bottom: 12px; }
-.upload-zone .label { color: var(--text2); font-size: 0.9rem; margin-top: 8px; }
-.upload-zone input { display: none; }
-.preview-container {
-  position: relative;
-  border-radius: var(--radius);
-  overflow: hidden;
-  background: #000;
-  margin-top: 16px;
-}
-.preview-container canvas, .preview-container video {
-  display: block;
-  width: 100%;
-  max-height: 480px;
-  object-fit: contain;
-}
-.controls {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 12px;
-  margin-top: 16px;
-}
-.control-group label {
-  display: block;
-  font-size: 0.8rem;
-  color: var(--text2);
-  margin-bottom: 6px;
-}
-.slider-wrap {
+  border-radius: 6px;
   display: flex;
   align-items: center;
-  gap: 10px;
+  justify-content: center;
+  color: white;
+  font-size: 0.7rem;
+  font-weight: 800;
 }
-input[type="range"] {
+.header .tag {
+  background: var(--accent-light);
+  color: var(--accent);
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 3px 10px;
+  border-radius: 4px;
+}
+.header .right {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.btn-vip {
+  background: var(--accent);
+  color: white;
+  border: none;
+  padding: 7px 16px;
+  border-radius: 6px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+.btn-vip:hover { background: var(--accent-hover); }
+.avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--surface2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text3);
+  cursor: pointer;
+}
+
+/* ===== Layout ===== */
+.layout {
+  display: flex;
+  height: calc(100vh - 52px);
+}
+
+/* ===== Main Area ===== */
+.main-area {
   flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+/* Upload / Preview */
+.preview-zone {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--surface2);
+  position: relative;
+  overflow: hidden;
+  border-bottom: 1px solid var(--border);
+}
+.upload-placeholder {
+  text-align: center;
+  cursor: pointer;
+}
+.upload-placeholder .plus {
+  width: 72px;
+  height: 72px;
+  background: var(--accent);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 14px;
+  transition: transform 0.2s;
+}
+.upload-placeholder .plus:hover { transform: scale(1.05); }
+.upload-placeholder .plus svg { width: 32px; height: 32px; }
+.upload-placeholder p { color: var(--text2); font-size: 0.88rem; }
+
+/* Canvas container for editing */
+.canvas-container {
+  position: relative;
+  display: none;
+  width: 100%;
+  height: 100%;
+}
+.canvas-container canvas {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  max-width: 100%;
+  max-height: 100%;
+}
+.canvas-container canvas.overlay-canvas {
+  cursor: crosshair;
+  z-index: 2;
+}
+
+/* Video container */
+.video-container {
+  display: none;
+  width: 100%;
+  height: 100%;
+  background: #000;
+  align-items: center;
+  justify-content: center;
+}
+.video-container video {
+  max-width: 100%;
+  max-height: 100%;
+}
+
+/* Drag over effect */
+.preview-zone.dragover {
+  background: var(--accent-light);
+  outline: 2px dashed var(--accent);
+  outline-offset: -8px;
+}
+
+/* Task list */
+.task-bar {
+  height: 44px;
+  background: var(--surface);
+  border-top: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  padding: 0 16px;
+  gap: 10px;
+  font-size: 0.85rem;
+  color: var(--text2);
+}
+.task-bar .count { font-weight: 600; color: var(--text); }
+.btn-add {
+  border: 1px solid var(--border);
+  background: white;
+  padding: 5px 12px;
+  border-radius: 5px;
+  font-size: 0.8rem;
+  cursor: pointer;
+  color: var(--text2);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.btn-add:hover { border-color: var(--accent); color: var(--accent); }
+.task-bar .task-items {
+  flex: 1;
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  margin-left: 8px;
+}
+.task-bar .task-thumb {
+  width: 32px;
+  height: 24px;
+  border-radius: 3px;
+  background: var(--surface2);
+  overflow: hidden;
+  flex-shrink: 0;
+  border: 1.5px solid transparent;
+}
+.task-bar .task-thumb.active { border-color: var(--accent); }
+.task-bar .task-thumb img { width: 100%; height: 100%; object-fit: cover; }
+
+/* ===== Right Panel ===== */
+.right-panel {
+  width: 280px;
+  background: var(--surface);
+  border-left: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+}
+.panel-section {
+  padding: 16px;
+  border-bottom: 1px solid var(--border);
+}
+.panel-section:last-child { border-bottom: none; }
+.panel-label {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--text);
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.panel-label .badge {
+  background: var(--accent);
+  color: white;
+  font-size: 0.65rem;
+  padding: 1px 6px;
+  border-radius: 3px;
+  font-weight: 500;
+}
+
+/* Mode grid */
+.mode-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 8px;
+}
+.mode-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+  padding: 10px 4px;
+  border-radius: 8px;
+  cursor: pointer;
+  border: 1.5px solid transparent;
+  transition: all 0.15s;
+  position: relative;
+}
+.mode-item:hover { background: var(--surface2); }
+.mode-item.active {
+  border-color: var(--accent);
+  background: var(--accent-light);
+}
+.mode-item .icon-box {
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  background: var(--surface2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.1rem;
+}
+.mode-item.active .icon-box { background: white; box-shadow: var(--shadow); }
+.mode-item .label { font-size: 0.72rem; color: var(--text2); white-space: nowrap; }
+.mode-item.active .label { color: var(--accent); font-weight: 600; }
+.mode-item .svip-tag {
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  background: linear-gradient(135deg, #f59e0b, #ef4444);
+  color: white;
+  font-size: 0.5rem;
+  padding: 1px 4px;
+  border-radius: 3px;
+  font-weight: 700;
+}
+
+/* Tool options */
+.tool-options {
+  display: none;
+  margin-top: 10px;
+  padding: 10px;
+  background: var(--surface2);
+  border-radius: 8px;
+  font-size: 0.8rem;
+}
+.tool-options.show { display: block; }
+.tool-options label {
+  display: block;
+  margin-bottom: 6px;
+  color: var(--text2);
+  font-size: 0.78rem;
+}
+.tool-options select, .tool-options input[type="range"] {
+  width: 100%;
+  margin-bottom: 8px;
+}
+.tool-options select {
+  padding: 6px 8px;
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  font-size: 0.8rem;
+  background: white;
+  color: var(--text);
+}
+.tool-options input[type="range"] {
   -webkit-appearance: none;
   height: 4px;
-  background: var(--surface2);
+  background: var(--border);
   border-radius: 2px;
   outline: none;
 }
-input[type="range"]::-webkit-slider-thumb {
+.tool-options input[type="range"]::-webkit-slider-thumb {
   -webkit-appearance: none;
-  width: 16px;
-  height: 16px;
+  width: 14px;
+  height: 14px;
   background: var(--accent);
   border-radius: 50%;
   cursor: pointer;
 }
-.range-val {
-  font-size: 0.8rem;
-  color: var(--accent2);
-  min-width: 32px;
+.range-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.range-row .val {
+  font-size: 0.75rem;
+  color: var(--accent);
+  min-width: 28px;
   text-align: right;
 }
-select {
-  width: 100%;
-  padding: 10px 12px;
-  background: var(--surface2);
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  color: var(--text);
-  font-size: 0.9rem;
-  outline: none;
+
+/* Brush size indicator */
+.brush-indicator {
+  display: none;
+  position: fixed;
+  border: 2px solid var(--accent);
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 100;
+  opacity: 0.6;
 }
-select:focus { border-color: var(--accent); }
-.btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  padding: 12px 24px;
-  border: none;
-  border-radius: 8px;
-  font-size: 0.95rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s;
-  width: 100%;
-}
-.btn-primary {
-  background: linear-gradient(135deg, var(--accent), #8b5cf6);
-  color: white;
-}
-.btn-primary:hover { transform: translateY(-1px); box-shadow: 0 4px 20px rgba(108,92,231,0.4); }
-.btn-primary:disabled { opacity: 0.5; cursor: not-allowed; transform: none; box-shadow: none; }
-.btn-secondary {
-  background: var(--surface2);
-  color: var(--text);
-  border: 1px solid var(--border);
-}
-.btn-secondary:hover { border-color: var(--accent); }
-.btn-group {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 12px;
-  margin-top: 16px;
-}
-.progress-wrap {
-  margin-top: 16px;
+
+/* Progress */
+.progress-section {
+  padding: 16px;
   display: none;
 }
-.progress-wrap.show { display: block; }
+.progress-section.show { display: block; }
 .progress-header {
   display: flex;
   justify-content: space-between;
-  margin-bottom: 8px;
-  font-size: 0.85rem;
+  margin-bottom: 6px;
+  font-size: 0.8rem;
 }
 .progress-header .step { color: var(--text2); }
-.progress-header .pct { color: var(--accent2); font-weight: 600; }
+.progress-header .pct { color: var(--accent); font-weight: 600; }
 .progress-bar {
-  height: 6px;
+  height: 5px;
   background: var(--surface2);
   border-radius: 3px;
   overflow: hidden;
 }
 .progress-bar .fill {
   height: 100%;
-  background: linear-gradient(90deg, var(--accent), var(--accent2));
+  background: linear-gradient(90deg, var(--accent), #818cf8);
   border-radius: 3px;
   transition: width 0.3s;
   width: 0%;
 }
-.result-section { display: none; }
-.result-section.show { display: block; }
-.compare-wrap {
-  position: relative;
-  border-radius: var(--radius);
-  overflow: hidden;
-  background: #000;
+
+/* Action buttons */
+.action-section {
+  padding: 16px;
+  margin-top: auto;
 }
-.compare-wrap canvas {
-  display: block;
+.btn-process {
   width: 100%;
-  max-height: 480px;
+  padding: 11px;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  background: var(--accent);
+  color: white;
 }
-.compare-labels {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
+.btn-process:hover { background: var(--accent-hover); }
+.btn-process:disabled { opacity: 0.4; cursor: not-allowed; }
+.free-count {
+  text-align: center;
+  font-size: 0.75rem;
+  color: var(--text3);
   margin-top: 8px;
 }
-.compare-labels span {
+
+/* Result section */
+.result-section {
+  display: none;
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.6);
+  z-index: 100;
+  align-items: center;
+  justify-content: center;
+}
+.result-section.show { display: flex; }
+.result-card {
+  background: white;
+  border-radius: 12px;
+  padding: 24px;
+  max-width: 800px;
+  width: 90%;
+  max-height: 85vh;
+  overflow: auto;
+}
+.result-card h3 { margin-bottom: 16px; font-size: 1.1rem; }
+.result-compare {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+.result-compare img, .result-compare video {
+  width: 100%;
+  border-radius: 8px;
+  background: #000;
+}
+.result-compare .label {
   text-align: center;
   font-size: 0.8rem;
   color: var(--text2);
+  margin-top: 6px;
 }
-.footer {
-  text-align: center;
-  padding: 32px 0;
-  color: var(--text2);
-  font-size: 0.8rem;
+.result-actions {
+  display: flex;
+  gap: 10px;
 }
-.footer a { color: var(--accent2); text-decoration: none; }
-@media (max-width: 640px) {
-  .controls { grid-template-columns: 1fr; }
-  .btn-group { grid-template-columns: 1fr; }
-  header h1 { font-size: 1.5rem; }
+.result-actions button {
+  flex: 1;
+  padding: 10px;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  border: none;
 }
+.result-actions .btn-dl { background: var(--accent); color: white; }
+.result-actions .btn-close { background: var(--surface2); color: var(--text); }
+
+/* Hidden input */
+#fileInput { display: none; }
+
+/* Toast */
+.toast {
+  position: fixed;
+  top: 70px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--text);
+  color: white;
+  padding: 8px 20px;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  z-index: 200;
+  opacity: 0;
+  transition: opacity 0.3s;
+  pointer-events: none;
+}
+.toast.show { opacity: 1; }
 </style>
 </head>
 <body>
-<div class="app">
-  <header>
-    <h1>QuShuiYin</h1>
-    <p>AI 去字幕 - 纯浏览器端处理，无需上传服务器</p>
-  </header>
 
-  <div class="card">
-    <div class="tabs">
-      <button class="tab active" data-mode="image">图片去字幕</button>
-      <button class="tab" data-mode="video">视频去字幕</button>
+<!-- Header -->
+<div class="header">
+  <div class="logo">
+    <div class="logo-icon">QP</div>
+    <span>开拍</span>
+  </div>
+  <span class="tag">AI 消除</span>
+  <div class="right">
+    <button class="btn-vip" style="display:none"> 立即开通</button>
+    <div class="avatar">👤</div>
+  </div>
+</div>
+
+<!-- Layout -->
+<div class="layout">
+  <!-- Main Area -->
+  <div class="main-area">
+    <div class="preview-zone" id="previewZone">
+      <div class="upload-placeholder" id="uploadPlaceholder">
+        <div class="plus">
+          <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        </div>
+        <p>暂无预览，请上传图片或视频</p>
+      </div>
+      <div class="canvas-container" id="canvasContainer">
+        <canvas id="mainCanvas"></canvas>
+        <canvas id="overlayCanvas" class="overlay-canvas"></canvas>
+      </div>
+      <div class="video-container" id="videoContainer">
+        <video id="previewVideo" controls></video>
+      </div>
     </div>
 
-    <div id="uploadZone" class="upload-zone">
-      <div class="icon">📁</div>
-      <div>点击或拖拽上传</div>
-      <div class="label" id="fileTypes">支持 JPG / PNG / BMP 图片</div>
-      <input type="file" id="fileInput" accept="image/*">
+    <!-- Task bar -->
+    <div class="task-bar">
+      <span>本次任务（</span><span class="count" id="taskCount">0</span><span>/9）</span>
+      <button class="btn-add" id="btnAdd">+ 继续添加</button>
+      <div class="task-items" id="taskItems"></div>
     </div>
+  </div>
 
-    <div class="preview-container" id="previewSection" style="display:none">
-      <canvas id="previewCanvas"></canvas>
-    </div>
-
-    <div id="videoControls" style="display:none">
-      <div class="controls">
-        <div class="control-group">
-          <label>检测区域（底部比例）</label>
-          <div class="slider-wrap">
-            <input type="range" id="bottomRatio" min="20" max="60" value="40">
-            <span class="range-val" id="bottomRatioVal">40%</span>
-          </div>
+  <!-- Right Panel -->
+  <div class="right-panel">
+    <!-- Auto mode -->
+    <div class="panel-section">
+      <div class="panel-label">自动 <span class="badge">支持批量</span></div>
+      <div class="mode-grid" id="autoModes">
+        <div class="mode-item active" data-mode="smart">
+          <div class="icon-box">✨</div>
+          <span class="label">智能全消</span>
         </div>
-        <div class="control-group">
-          <label>字幕颜色灵敏度</label>
-          <div class="slider-wrap">
-            <input type="range" id="colorSensitivity" min="30" max="100" value="70">
-            <span class="range-val" id="colorSensitivityVal">70%</span>
-          </div>
+        <div class="mode-item" data-mode="smart-pro">
+          <div class="icon-box">⚡</div>
+          <span class="label">智能全消Pro</span>
+          <span class="svip-tag">SVIP</span>
         </div>
-        <div class="control-group">
-          <label>修复强度</label>
-          <div class="slider-wrap">
-            <input type="range" id="inpaintRadius" min="3" max="20" value="10">
-            <span class="range-val" id="inpaintRadiusVal">10</span>
-          </div>
+        <div class="mode-item" data-mode="watermark">
+          <div class="icon-box">T</div>
+          <span class="label">去水印</span>
         </div>
-        <div class="control-group">
-          <label>视频抽帧率</label>
-          <select id="frameRate">
-            <option value="1">每秒 1 帧（快）</option>
-            <option value="2">每秒 2 帧</option>
-            <option value="5" selected>每秒 5 帧（推荐）</option>
-            <option value="10">每秒 10 帧（精细）</option>
-          </select>
+        <div class="mode-item" data-mode="subtitle">
+          <div class="icon-box">Cc</div>
+          <span class="label">去字幕</span>
+        </div>
+        <div class="mode-item" data-mode="person">
+          <div class="icon-box">🚶</div>
+          <span class="label">去路人</span>
+        </div>
+      </div>
+      <div class="tool-options" id="autoOptions">
+        <label>修复算法</label>
+        <select id="algoSelect">
+          <option value="fast">快速修复（推荐）</option>
+          <option value="quality">高质量修复（慢）</option>
+        </select>
+        <label>字幕检测区域</label>
+        <div class="range-row">
+          <input type="range" id="bottomRatio" min="20" max="60" value="40">
+          <span class="val" id="bottomRatioVal">40%</span>
         </div>
       </div>
     </div>
 
-    <div class="progress-wrap" id="progressWrap">
+    <!-- Manual mode -->
+    <div class="panel-section">
+      <div class="panel-label">手动</div>
+      <div class="mode-grid" id="manualModes">
+        <div class="mode-item" data-mode="sub-box">
+          <div class="icon-box">🖼️</div>
+          <span class="label">字幕选框</span>
+        </div>
+        <div class="mode-item" data-mode="text-box">
+          <div class="icon-box">📋</div>
+          <span class="label">文字选框</span>
+        </div>
+        <div class="mode-item" data-mode="eraser">
+          <div class="icon-box">🖌️</div>
+          <span class="label">消除笔</span>
+        </div>
+      </div>
+      <div class="tool-options" id="manualOptions">
+        <label>画笔大小</label>
+        <div class="range-row">
+          <input type="range" id="brushSize" min="5" max="80" value="20">
+          <span class="val" id="brushSizeVal">20</span>
+        </div>
+        <label>消除模式</label>
+        <select id="eraserAlgo">
+          <option value="inpaint">AI 修复</option>
+          <option value="blur">高斯模糊</option>
+          <option value="pixelate">马赛克</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Progress -->
+    <div class="progress-section" id="progressSection">
       <div class="progress-header">
         <span class="step" id="progressStep">准备中...</span>
         <span class="pct" id="progressPct">0%</span>
@@ -323,726 +634,683 @@ select:focus { border-color: var(--accent); }
       <div class="progress-bar"><div class="fill" id="progressFill"></div></div>
     </div>
 
-    <div class="btn-group">
-      <button class="btn btn-primary" id="btnProcess" disabled>开始处理</button>
-      <button class="btn btn-secondary" id="btnReset" style="display:none">重新上传</button>
+    <!-- Actions -->
+    <div class="action-section">
+      <button class="btn-process" id="btnProcess" disabled>开始处理</button>
+      <div class="free-count">今日剩余免费次数：9</div>
     </div>
-  </div>
-
-  <div class="card result-section" id="resultSection">
-    <div class="card-title">处理结果</div>
-    <div class="compare-wrap" id="compareWrap"></div>
-    <div class="compare-labels" id="compareLabels"></div>
-    <div class="btn-group" style="margin-top:16px">
-      <button class="btn btn-primary" id="btnDownload">下载结果</button>
-      <button class="btn btn-secondary" id="btnReset2">处理新文件</button>
-    </div>
-  </div>
-
-  <div class="footer">
-    <p>QuShuiYin - All processing runs locally in your browser</p>
-    <p><a href="https://github.com/YP-4966/QuShuiYin" target="_blank">GitHub</a></p>
   </div>
 </div>
 
+<!-- Result overlay -->
+<div class="result-section" id="resultSection">
+  <div class="result-card">
+    <h3>处理完成</h3>
+    <div class="result-compare" id="resultCompare"></div>
+    <div class="result-actions">
+      <button class="btn-dl" id="btnDownload">下载结果</button>
+      <button class="btn-close" id="btnCloseResult">关闭</button>
+    </div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<!-- Hidden input -->
+<input type="file" id="fileInput" accept="image/*,video/*">
+
+<!-- Brush indicator -->
+<div class="brush-indicator" id="brushIndicator"></div>
+
 <script>
-// ========== 状态管理 ==========
-let currentMode = 'image';
-let sourceFile = null;
-let sourceType = '';
-let resultBlob = null;
-let resultURL = null;
+// ========== State ==========
+const state = {
+  currentMode: 'smart',     // 当前选中的模式
+  editMode: null,           // null=自动, 'sub-box'/'text-box'/'eraser'=手动
+  files: [],                // 任务文件列表
+  activeIndex: -1,          // 当前预览的任务索引
+  sourceImage: null,        // 当前图片 Image 对象
+  sourceVideo: null,        // 当前视频元素
+  isVideo: false,
+  maskCanvas: null,         // 手动掩码 Canvas
+  drawing: false,
+  drawStart: null,
+  drawRect: null,
+  resultBlob: null,
+  resultURL: null,
+};
 
 // ========== DOM ==========
 const $ = s => document.querySelector(s);
 const $$ = s => document.querySelectorAll(s);
 
-const uploadZone = $('#uploadZone');
+const previewZone = $('#previewZone');
+const uploadPlaceholder = $('#uploadPlaceholder');
+const canvasContainer = $('#canvasContainer');
+const mainCanvas = $('#mainCanvas');
+const overlayCanvas = $('#overlayCanvas');
+const videoContainer = $('#videoContainer');
+const previewVideo = $('#previewVideo');
 const fileInput = $('#fileInput');
-const previewSection = $('#previewSection');
-const previewCanvas = $('#previewCanvas');
-const progressWrap = $('#progressWrap');
+const taskItems = $('#taskItems');
+const taskCount = $('#taskCount');
+const progressSection = $('#progressSection');
 const progressStep = $('#progressStep');
 const progressPct = $('#progressPct');
 const progressFill = $('#progressFill');
 const btnProcess = $('#btnProcess');
-const btnReset = $('#btnReset');
-const btnReset2 = $('#btnReset2');
-const btnDownload = $('#btnDownload');
 const resultSection = $('#resultSection');
-const compareWrap = $('#compareWrap');
-const compareLabels = $('#compareLabels');
-const videoControls = $('#videoControls');
+const resultCompare = $('#resultCompare');
+const brushIndicator = $('#brushIndicator');
 
-// ========== Tab 切换 ==========
-$$('.tab').forEach(tab => {
-  tab.addEventListener('click', () => {
-    $$('.tab').forEach(t => t.classList.remove('active'));
-    tab.classList.add('active');
-    currentMode = tab.dataset.mode;
-    resetAll();
-    if (currentMode === 'image') {
-      fileInput.accept = 'image/*';
-      $('#fileTypes').textContent = '支持 JPG / PNG / BMP 图片';
-    } else {
-      fileInput.accept = 'video/*';
-      $('#fileTypes').textContent = '支持 MP4 / WebM / MOV 视频';
+// ========== Upload ==========
+uploadPlaceholder.addEventListener('click', () => fileInput.click());
+$('#btnAdd').addEventListener('click', () => fileInput.click());
+fileInput.addEventListener('change', () => {
+  if (fileInput.files.length) addFiles(Array.from(fileInput.files));
+  fileInput.value = '';
+});
+
+previewZone.addEventListener('dragover', e => { e.preventDefault(); previewZone.classList.add('dragover'); });
+previewZone.addEventListener('dragleave', () => previewZone.classList.remove('dragover'));
+previewZone.addEventListener('drop', e => {
+  e.preventDefault();
+  previewZone.classList.remove('dragover');
+  if (e.dataTransfer.files.length) addFiles(Array.from(e.dataTransfer.files));
+});
+
+function addFiles(files) {
+  const maxTasks = 9 - state.files.length;
+  if (maxTasks <= 0) { showToast('最多添加 9 个任务'); return; }
+  const valid = files.slice(0, maxTasks);
+  valid.forEach(f => {
+    if (f.type.startsWith('image/') || f.type.startsWith('video/')) {
+      state.files.push({ file: f, type: f.type.startsWith('video/') ? 'video' : 'image', status: 'pending' });
     }
   });
-});
+  updateTaskBar();
+  if (state.activeIndex === -1 && state.files.length > 0) {
+    selectTask(0);
+  }
+  btnProcess.disabled = state.files.length === 0;
+}
 
-// ========== 上传 ==========
-uploadZone.addEventListener('click', () => fileInput.click());
-uploadZone.addEventListener('dragover', e => { e.preventDefault(); uploadZone.classList.add('dragover'); });
-uploadZone.addEventListener('dragleave', () => uploadZone.classList.remove('dragover'));
-uploadZone.addEventListener('drop', e => {
-  e.preventDefault();
-  uploadZone.classList.remove('dragover');
-  if (e.dataTransfer.files.length) handleFile(e.dataTransfer.files[0]);
-});
-fileInput.addEventListener('change', () => {
-  if (fileInput.files.length) handleFile(fileInput.files[0]);
-});
+function updateTaskBar() {
+  taskCount.textContent = state.files.length;
+  taskItems.innerHTML = '';
+  state.files.forEach((f, i) => {
+    const div = document.createElement('div');
+    div.className = 'task-thumb' + (i === state.activeIndex ? ' active' : '');
+    if (f.thumbURL) {
+      div.innerHTML = `<img src="${f.thumbURL}">`;
+    }
+    div.addEventListener('click', () => selectTask(i));
+    taskItems.appendChild(div);
+  });
+}
 
-function handleFile(file) {
-  sourceFile = file;
-  sourceType = file.type.split('/')[0];
-  uploadZone.style.display = 'none';
-  previewSection.style.display = 'block';
-  btnProcess.disabled = false;
-  btnReset.style.display = 'inline-flex';
+function selectTask(index) {
+  state.activeIndex = index;
+  const f = state.files[index];
+  state.isVideo = f.type === 'video';
 
-  if (currentMode === 'image' || sourceType === 'image') {
-    showImagePreview(file);
+  // Show appropriate container
+  uploadPlaceholder.style.display = 'none';
+  canvasContainer.style.display = state.isVideo ? 'none' : 'block';
+  videoContainer.style.display = state.isVideo ? 'flex' : 'none';
+
+  if (state.isVideo) {
+    if (previewVideo.src !== URL.createObjectURL(f.file)) {
+      previewVideo.src = URL.createObjectURL(f.file);
+    }
   } else {
-    showVideoPreview(file);
+    const img = new Image();
+    img.onload = () => {
+      state.sourceImage = img;
+      mainCanvas.width = img.width;
+      mainCanvas.height = img.height;
+      overlayCanvas.width = img.width;
+      overlayCanvas.height = img.height;
+      const ctx = mainCanvas.getContext('2d');
+      ctx.drawImage(img, 0, 0);
+
+      // 创建掩码 Canvas
+      state.maskCanvas = document.createElement('canvas');
+      state.maskCanvas.width = img.width;
+      state.maskCanvas.height = img.height;
+
+      // 生成缩略图
+      if (!f.thumbURL) {
+        const thumb = document.createElement('canvas');
+        thumb.width = 64; thumb.height = 48;
+        const tctx = thumb.getContext('2d');
+        tctx.drawImage(img, 0, 0, 64, 48);
+        f.thumbURL = thumb.toDataURL();
+        updateTaskBar();
+      }
+
+      // 清除 overlay
+      const octx = overlayCanvas.getContext('2d');
+      octx.clearRect(0, 0, overlayCanvas.width, overlayCanvas.height);
+    };
+    img.src = URL.createObjectURL(f.file);
+  }
+  updateTaskBar();
+  updateManualOptions();
+}
+
+// ========== Mode selection ==========
+function setupModeGrid(containerId) {
+  $$('#' + containerId + ' .mode-item').forEach(item => {
+    item.addEventListener('click', () => {
+      // Deselect all in both grids
+      $$('.mode-item').forEach(m => m.classList.remove('active'));
+      item.classList.add('active');
+      state.currentMode = item.dataset.mode;
+
+      // Determine if auto or manual
+      const isManual = ['sub-box', 'text-box', 'eraser'].includes(state.currentMode);
+      state.editMode = isManual ? state.currentMode : null;
+
+      // Show/hide options
+      $('#autoOptions').classList.toggle('show', !isManual && ['smart', 'subtitle', 'watermark'].includes(state.currentMode));
+      $('#manualOptions').classList.toggle('show', isManual);
+
+      updateManualOptions();
+      updateOverlayCursor();
+    });
+  });
+}
+setupModeGrid('autoModes');
+setupModeGrid('manualModes');
+
+function updateManualOptions() {
+  if (!state.sourceImage || state.isVideo) return;
+  overlayCanvas.style.display = state.editMode ? 'block' : 'none';
+  if (state.editMode) {
+    overlayCanvas.style.cursor = state.editMode === 'eraser' ? 'none' : 'crosshair';
+  } else {
+    overlayCanvas.style.cursor = 'default';
+    // 清除 overlay
+    const octx = overlayCanvas.getContext('2d');
+    octx.clearRect(0, 0, overlayCanvas.width, overlayCanvas.height);
   }
 }
 
-function showImagePreview(file) {
-  const img = new Image();
-  img.onload = () => {
-    previewCanvas.width = img.width;
-    previewCanvas.height = img.height;
-    const ctx = previewCanvas.getContext('2d');
-    ctx.drawImage(img, 0, 0);
-  };
-  img.src = URL.createObjectURL(file);
-}
-
-function showVideoPreview(file) {
-  const video = document.createElement('video');
-  video.controls = true;
-  video.muted = true;
-  video.style.width = '100%';
-  video.style.maxHeight = '480px';
-  video.src = URL.createObjectURL(file);
-  previewSection.innerHTML = '';
-  previewSection.appendChild(video);
-  videoControls.style.display = 'block';
-}
-
-// ========== 参数读取 ==========
-function getParams() {
-  return {
-    bottomRatio: parseInt($('#bottomRatio').value) / 100,
-    colorSensitivity: parseInt($('#colorSensitivity').value) / 100,
-    inpaintRadius: parseInt($('#inpaintRadius').value),
-    frameRate: parseInt($('#frameRate').value)
-  };
-}
-
-// 滑块实时显示
-['bottomRatio', 'colorSensitivity', 'inpaintRadius'].forEach(id => {
-  const el = $(`#${id}`);
-  el.addEventListener('input', () => {
-    const valEl = $(`#${id}Val`);
-    valEl.textContent = id === 'inpaintRadius' ? el.value : el.value + '%';
-  });
+// ========== Range sliders ==========
+$('#bottomRatio').addEventListener('input', e => $('#bottomRatioVal').textContent = e.target.value + '%');
+$('#brushSize').addEventListener('input', e => {
+  $('#brushSizeVal').textContent = e.target.value;
+  updateBrushIndicator();
 });
 
-// ========== 进度 ==========
+// ========== Canvas drawing ==========
+let lastDrawPos = null;
+
+overlayCanvas.addEventListener('mousedown', e => {
+  if (!state.editMode) return;
+  state.drawing = true;
+  const rect = overlayCanvas.getBoundingClientRect();
+  const scaleX = overlayCanvas.width / rect.width;
+  const scaleY = overlayCanvas.height / rect.height;
+  const x = (e.clientX - rect.left) * scaleX;
+  const y = (e.clientY - rect.top) * scaleY;
+  lastDrawPos = { x, y };
+
+  if (state.editMode === 'eraser') {
+    drawEraserStroke(x, y);
+  } else {
+    state.drawStart = { x, y };
+  }
+});
+
+overlayCanvas.addEventListener('mousemove', e => {
+  const rect = overlayCanvas.getBoundingClientRect();
+  const scaleX = overlayCanvas.width / rect.width;
+  const scaleY = overlayCanvas.height / rect.height;
+  const x = (e.clientX - rect.left) * scaleX;
+  const y = (e.clientY - rect.top) * scaleY;
+
+  // Brush indicator
+  if (state.editMode === 'eraser') {
+    const size = parseInt($('#brushSize').value);
+    brushIndicator.style.display = 'block';
+    brushIndicator.style.width = (size * rect.width / overlayCanvas.width) + 'px';
+    brushIndicator.style.height = (size * rect.height / overlayCanvas.height) + 'px';
+    brushIndicator.style.left = (e.clientX - size * rect.width / overlayCanvas.width / 2) + 'px';
+    brushIndicator.style.top = (e.clientY - size * rect.height / overlayCanvas.height / 2) + 'px';
+  }
+
+  if (!state.drawing) return;
+
+  if (state.editMode === 'eraser') {
+    // Interpolate between last and current position
+    if (lastDrawPos) {
+      const dx = x - lastDrawPos.x;
+      const dy = y - lastDrawPos.y;
+      const dist = Math.sqrt(dx*dx + dy*dy);
+      const steps = Math.max(1, Math.floor(dist / 3));
+      for (let i = 0; i <= steps; i++) {
+        const t = i / steps;
+        drawEraserStroke(
+          lastDrawPos.x + dx * t,
+          lastDrawPos.y + dy * t
+        );
+      }
+    }
+    lastDrawPos = { x, y };
+  } else if (state.drawStart) {
+    // Draw selection rectangle preview
+    const octx = overlayCanvas.getContext('2d');
+    octx.clearRect(0, 0, overlayCanvas.width, overlayCanvas.height);
+    octx.strokeStyle = 'rgba(91, 110, 245, 0.8)';
+    octx.lineWidth = 2;
+    octx.setLineDash([6, 4]);
+    octx.fillStyle = 'rgba(91, 110, 245, 0.1)';
+    const rx = Math.min(state.drawStart.x, x);
+    const ry = Math.min(state.drawStart.y, y);
+    const rw = Math.abs(x - state.drawStart.x);
+    const rh = Math.abs(y - state.drawStart.y);
+    octx.fillRect(rx, ry, rw, rh);
+    octx.strokeRect(rx, ry, rw, rh);
+    state.drawRect = { x: rx, y: ry, w: rw, h: rh };
+  }
+});
+
+overlayCanvas.addEventListener('mouseup', () => {
+  if (!state.drawing) return;
+  state.drawing = false;
+  lastDrawPos = null;
+
+  if (state.drawRect && state.editMode !== 'eraser') {
+    // 保存选框到掩码
+    const mctx = state.maskCanvas.getContext('2d');
+    mctx.fillStyle = 'white';
+    mctx.fillRect(state.drawRect.x, state.drawRect.y, state.drawRect.w, state.drawRect.h);
+    state.drawRect = null;
+  }
+});
+
+overlayCanvas.addEventListener('mouseleave', () => {
+  brushIndicator.style.display = 'none';
+  state.drawing = false;
+  lastDrawPos = null;
+});
+
+function drawEraserStroke(x, y) {
+  const size = parseInt($('#brushSize').value);
+  const octx = overlayCanvas.getContext('2d');
+  octx.fillStyle = 'rgba(239, 68, 68, 0.35)';
+  octx.beginPath();
+  octx.arc(x, y, size / 2, 0, Math.PI * 2);
+  octx.fill();
+
+  // 同时绘制到掩码
+  const mctx = state.maskCanvas.getContext('2d');
+  mctx.fillStyle = 'white';
+  mctx.beginPath();
+  mctx.arc(x, y, size / 2, 0, Math.PI * 2);
+  mctx.fill();
+}
+
+function updateBrushIndicator() {
+  if (state.editMode !== 'eraser') return;
+  const rect = overlayCanvas.getBoundingClientRect();
+  const size = parseInt($('#brushSize').value);
+  brushIndicator.style.width = (size * rect.width / overlayCanvas.width) + 'px';
+  brushIndicator.style.height = (size * rect.height / overlayCanvas.height) + 'px';
+}
+
+// ========== 自动字幕检测 ==========
+function autoDetectSubtitleMask(ctx, w, h) {
+  const imageData = ctx.getImageData(0, 0, w, h);
+  const data = imageData.data;
+  const bottomRatio = parseInt($('#bottomRatio').value) / 100;
+  const bottomY = Math.floor(h * (1 - bottomRatio));
+  const mask = new Uint8ClampedArray(w * h);
+
+  for (let y = bottomY; y < h; y++) {
+    for (let x = 0; x < w; x++) {
+      const i = (y * w + x) * 4;
+      const r = data[i], g = data[i+1], b = data[i+2];
+      const max = Math.max(r, g, b);
+      const min = Math.min(r, g, b);
+      const s = max === 0 ? 0 : (max - min) / max * 255;
+      const v = max;
+
+      if (v > 160 && s < 70) { mask[y * w + x] = 255; }
+      else if (r > 180 && g > 150 && b < 100 && s > 40) { mask[y * w + x] = 255; }
+    }
+  }
+
+  dilateMask(mask, w, h, 3);
+  erodeMask(mask, w, h, 1);
+  dilateMask(mask, w, h, 4);
+
+  // 只保留底部宽条状区域
+  const visited = new Uint8ClampedArray(w * h);
+  for (let y = 0; y < h; y++) {
+    for (let x = 0; x < w; x++) {
+      const idx = y * w + x;
+      if (mask[idx] === 255 && !visited[idx]) {
+        let minX = x, maxX = x, minY = y, maxY = y;
+        const queue = [idx];
+        visited[idx] = 1;
+        while (queue.length > 0) {
+          const cur = queue.shift();
+          const cx = cur % w, cy = (cur - cx) / w;
+          minX = Math.min(minX, cx); maxX = Math.max(maxX, cx);
+          minY = Math.min(minY, cy); maxY = Math.max(maxY, cy);
+          for (const [dx, dy] of [[-1,0],[1,0],[0,-1],[0,1]]) {
+            const nx = cx+dx, ny = cy+dy;
+            if (nx>=0 && nx<w && ny>=0 && ny<h) {
+              const ni = ny*w+nx;
+              if (mask[ni]===255 && !visited[ni]) { visited[ni]=1; queue.push(ni); }
+            }
+          }
+        }
+        const cw = maxX-minX, ch = maxY-minY;
+        if (cw < w*0.08 || ch < 4 || ch > h*0.15) {
+          // 不符合字幕特征，清除
+          for (let y2 = minY; y2 <= maxY; y2++)
+            for (let x2 = minX; x2 <= maxX; x2++)
+              mask[y2*w+x2] = 0;
+        } else {
+          // 扩展边界框
+          const pad = 6;
+          const x1 = Math.max(0, minX-pad), y1 = Math.max(0, minY-pad);
+          const x2 = Math.min(w, maxX+pad), y2 = Math.min(h, maxY+pad);
+          for (let y3 = y1; y3 < y2; y3++)
+            for (let x3 = x1; x3 < x2; x3++)
+              mask[y3*w+x3] = 255;
+        }
+      }
+    }
+  }
+  return mask;
+}
+
+// 形态学
+function dilateMask(mask, w, h, r) {
+  const copy = new Uint8ClampedArray(mask);
+  for (let y = r; y < h-r; y++) for (let x = r; x < w-r; x++) {
+    if (copy[y*w+x]===255) {
+      for (let dy=-r;dy<=r;dy++) for (let dx=-r;dx<=r;dx++) {
+        if (dx*dx+dy*dy<=r*r) mask[(y+dy)*w+(x+dx)]=255;
+      }
+    }
+  }
+}
+function erodeMask(mask, w, h, r) {
+  const copy = new Uint8ClampedArray(mask);
+  for (let y=r;y<h-r;y++) for (let x=r;x<w-r;x++) {
+    let ok=true;
+    outer: for(let dy=-r;dy<=r;dy++) for(let dx=-r;dx<=r;dx++) {
+      if(copy[(y+dy)*w+(x+dx)]===0){ok=false;break outer;}
+    }
+    mask[y*w+x]=ok?255:0;
+  }
+}
+
+// ========== Inpainting ==========
+function quickInpaint(ctx, w, h, mask, radius) {
+  const imageData = ctx.getImageData(0, 0, w, h);
+  const data = imageData.data;
+  const fixed = new Uint8ClampedArray(mask);
+
+  for (let pass = 0; pass < radius; pass++) {
+    for (let dir = 0; dir < 2; dir++) {
+      const yStart = dir===0?1:h-2, yEnd = dir===0?h-1:0, yStep = dir===0?1:-1;
+      const xStart = dir===0?1:w-2, xEnd = dir===0?w-1:0, xStep = dir===0?1:-1;
+      for (let y=yStart; y!==yEnd; y+=yStep) {
+        for (let x=xStart; x!==xEnd; x+=xStep) {
+          if (fixed[y*w+x]===255) {
+            let r=0,g=0,b=0,c=0;
+            for(const[dx,dy] of [[-1,0],[1,0],[0,-1],[0,1],[-1,-1],[1,-1],[-1,1],[1,1]]){
+              const nx=x+dx,ny=y+dy;
+              if(nx>=0&&nx<w&&ny>=0&&ny<h&&fixed[ny*w+nx]===0){
+                const ni=(ny*w+nx)*4; r+=data[ni];g+=data[ni+1];b+=data[ni+2];c++;
+              }
+            }
+            if(c>0){
+              const idx=(y*w+x)*4;
+              data[idx]=r/c;data[idx+1]=g/c;data[idx+2]=b/c;
+              fixed[y*w+x]=0;
+            }
+          }
+        }
+      }
+    }
+  }
+  ctx.putImageData(imageData, 0, 0);
+}
+
+function gaussianBlur(ctx, x, y, radius) {
+  const size = radius * 2 + 1;
+  const imageData = ctx.getImageData(x-radius, y-radius, size, size);
+  // Simple box blur approximation
+  const data = imageData.data;
+  const out = new Uint8ClampedArray(data.length);
+  const channels = [0, 1, 2];
+  for (let py = 0; py < size; py++) {
+    for (let px = 0; px < size; px++) {
+      let r=0,g=0,b=0,c=0;
+      for(let dy=-1;dy<=1;dy++) for(let dx=-1;dx<=1;dx++){
+        const sx=px+dx,sy=py+dy;
+        if(sx>=0&&sx<size&&sy>=0&&sy<size){
+          const si=(sy*size+sx)*4;
+          r+=data[si];g+=data[si+1];b+=data[si+2];c++;
+        }
+      }
+      const oi=(py*size+px)*4;
+      out[oi]=r/c;out[oi+1]=g/c;out[oi+2]=b/c;out[oi+3]=255;
+    }
+  }
+  const outData = new ImageData(out, size, size);
+  ctx.putImageData(outData, x-radius, y-radius);
+}
+
+// ========== Process ==========
+async function processFile(fileObj) {
+  if (fileObj.type === 'video') {
+    await processVideoFile(fileObj);
+  } else {
+    await processImageFile(fileObj);
+  }
+}
+
+async function processImageFile(fileObj) {
+  return new Promise((resolve) => {
+    const img = new Image();
+    img.onload = async () => {
+      const w = img.width, h = img.height;
+      const canvas = document.createElement('canvas');
+      canvas.width = w; canvas.height = h;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(img, 0, 0);
+
+      const mode = state.currentMode;
+
+      if (['smart', 'subtitle', 'watermark'].includes(mode)) {
+        setProgress(20, '检测字幕/水印区域...');
+        await sleep(50);
+        const mask = autoDetectSubtitleMask(ctx, w, h);
+        setProgress(40, '修复图像...');
+        await sleep(50);
+        quickInpaint(ctx, w, h, mask, parseInt($('#algoSelect').value === 'quality' ? 8 : 5));
+      } else if (state.editMode && state.maskCanvas) {
+        setProgress(30, '使用手动掩码修复...');
+        await sleep(50);
+        const maskData = state.maskCanvas.getContext('2d').getImageData(0, 0, w, h).data;
+        const mask = new Uint8ClampedArray(w * h);
+        for (let i = 0; i < mask.length; i++) {
+          mask[i] = maskData[i * 4] > 127 ? 255 : 0;
+        }
+        if ($('#eraserAlgo').value === 'blur') {
+          // 高斯模糊
+          for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
+            if (mask[y*w+x] === 255) gaussianBlur(ctx, x, y, 8);
+          }
+        } else {
+          quickInpaint(ctx, w, h, mask, 8);
+        }
+      }
+
+      setProgress(80, '保存结果...');
+      await sleep(50);
+      canvas.toBlob(blob => {
+        fileObj.resultBlob = blob;
+        fileObj.resultURL = URL.createObjectURL(blob);
+        setProgress(100, '完成');
+        resolve();
+      }, 'image/png');
+    };
+    img.src = URL.createObjectURL(fileObj.file);
+  });
+}
+
+async function processVideoFile(fileObj) {
+  return new Promise((resolve) => {
+    const video = document.createElement('video');
+    video.muted = true;
+    video.preload = 'auto';
+    video.onloadedmetadata = async () => {
+      const vw = video.videoWidth, vh = video.videoHeight;
+      const duration = video.duration;
+      const fps = 2; // 每秒2帧
+      const maxFrames = Math.min(Math.ceil(duration * fps), 150);
+
+      setProgress(5, `提取 ${maxFrames} 帧...`);
+      const frames = [];
+      const tmpCanvas = document.createElement('canvas');
+      tmpCanvas.width = vw; tmpCanvas.height = vh;
+      const tmpCtx = tmpCanvas.getContext('2d');
+
+      for (let i = 0; i < maxFrames; i++) {
+        video.currentTime = i / fps;
+        await new Promise(r => { video.onseeked = r; });
+        tmpCtx.drawImage(video, 0, 0, vw, vh);
+        frames.push(tmpCtx.getImageData(0, 0, vw, vh));
+        setProgress(5 + 10*i/maxFrames, `抽帧 ${i+1}/${maxFrames}`);
+      }
+
+      setProgress(15, `处理 ${maxFrames} 帧...`);
+      const mode = state.currentMode;
+
+      for (let i = 0; i < frames.length; i++) {
+        const c = document.createElement('canvas');
+        c.width = vw; c.height = vh;
+        const ctx = c.getContext('2d');
+        ctx.putImageData(frames[i], 0, 0);
+
+        if (['smart', 'subtitle', 'watermark'].includes(mode)) {
+          const mask = autoDetectSubtitleMask(ctx, vw, vh);
+          quickInpaint(ctx, vw, vh, mask, 5);
+        }
+
+        frames[i] = ctx.getImageData(0, 0, vw, vh);
+        setProgress(15 + 70*i/frames.length, `处理帧 ${i+1}/${frames.length}`);
+      }
+
+      // 合成视频
+      setProgress(85, '合成视频...');
+      const outCanvas = document.createElement('canvas');
+      outCanvas.width = vw; outCanvas.height = vh;
+      const outCtx = outCanvas.getContext('2d');
+      const stream = outCanvas.captureStream(0);
+      const recorder = new MediaRecorder(stream, { mimeType: 'video/webm;codecs=vp9', videoBitsPerSecond: 4000000 });
+      const chunks = [];
+      recorder.ondataavailable = e => { if(e.data.size>0) chunks.push(e.data); };
+      const done = new Promise(r => { recorder.onstop = () => r(new Blob(chunks, {type:'video/webm'})); });
+      recorder.start();
+
+      let idx = 0;
+      const draw = () => {
+        if (idx >= frames.length) { recorder.stop(); return; }
+        outCtx.putImageData(frames[idx], 0, 0);
+        idx++;
+        setProgress(85 + 10*idx/frames.length, `合成帧 ${idx}/${frames.length}`);
+        setTimeout(draw, Math.max(1, 1000/fps*0.7));
+      };
+      draw();
+      const videoBlob = await done;
+      fileObj.resultBlob = videoBlob;
+      fileObj.resultURL = URL.createObjectURL(videoBlob);
+      setProgress(100, '完成');
+      resolve();
+    };
+    video.src = URL.createObjectURL(fileObj.file);
+  });
+}
+
+function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
 function setProgress(pct, step) {
-  progressWrap.classList.add('show');
+  progressSection.classList.add('show');
   progressPct.textContent = Math.round(pct) + '%';
   progressFill.style.width = pct + '%';
   if (step) progressStep.textContent = step;
 }
 
-// ========== 字幕检测 ==========
-function detectSubtitleMask(ctx, width, height, params) {
-  const imageData = ctx.getImageData(0, 0, width, height);
-  const data = imageData.data;
-  const bottomY = Math.floor(height * (1 - params.bottomRatio));
-  const mask = new Uint8ClampedArray(width * height);
-
-  const sens = params.colorSensitivity;
-  const satThresh = 60 + (1 - sens) * 100;
-  const valThresh = 150 + (1 - sens) * 60;
-
-  for (let y = bottomY; y < height; y++) {
-    for (let x = 0; x < width; x++) {
-      const i = (y * width + x) * 4;
-      const r = data[i], g = data[i+1], b = data[i+2];
-
-      // RGB → HSV
-      const max = Math.max(r, g, b);
-      const min = Math.min(r, g, b);
-      const d = max - min;
-      const s = max === 0 ? 0 : d / max * 255;
-      const v = max;
-
-      // 检测白色/亮色/黄色字幕
-      let isText = false;
-      if (v > valThresh && s < satThresh) {
-        isText = true; // 白色/亮色
-      }
-      // 检测黄色字幕（常见于某些视频）
-      if (r > 180 && g > 150 && b < 100 && s > 50 && v > 150) {
-        isText = true;
-      }
-
-      if (isText) {
-        mask[y * width + x] = 255;
-      }
-    }
-  }
-
-  // 形态学操作：膨胀 + 闭运算
-  dilateMask(mask, width, height, 3);
-  closeMask(mask, width, height, 8, 3);
-  dilateMask(mask, width, height, 2);
-
-  // 过滤：只保留底部宽条状区域（字幕特征）
-  const contours = findContours(mask, width, height);
-  const filtered = new Uint8ClampedArray(width * height);
-
-  for (const contour of contours) {
-    const { minX, minY, maxX, maxY } = contour;
-    const cw = maxX - minX;
-    const ch = maxY - minY;
-
-    // 字幕特征：宽度 > 图片宽的 8%，高度合理
-    if (cw > width * 0.08 && ch > 4 && ch < height * 0.15) {
-      // 填充边界框
-      const padX = 6, padY = 4;
-      const x1 = Math.max(0, minX - padX);
-      const y1 = Math.max(0, minY - padY);
-      const x2 = Math.min(width, maxX + padX);
-      const y2 = Math.min(height, maxY + padY);
-
-      for (let y = y1; y < y2; y++) {
-        for (let x = x1; x < x2; x++) {
-          filtered[y * width + x] = 255;
-        }
-      }
-    }
-  }
-
-  return filtered;
-}
-
-// ========== 形态学操作 ==========
-function dilateMask(mask, w, h, r) {
-  const copy = new Uint8ClampedArray(mask);
-  for (let y = r; y < h - r; y++) {
-    for (let x = r; x < w - r; x++) {
-      if (copy[y * w + x] === 255) {
-        for (let dy = -r; dy <= r; dy++) {
-          for (let dx = -r; dx <= r; dx++) {
-            if (dx*dx + dy*dy <= r*r) {
-              mask[(y+dy)*w + (x+dx)] = 255;
-            }
-          }
-        }
-      }
-    }
-  }
-}
-
-function closeMask(mask, w, h, kx, ky) {
-  // 先膨胀再腐蚀
-  const tmp = new Uint8ClampedArray(mask);
-  dilateMask(tmp, w, h, Math.ceil(kx/2));
-  erodeMask(mask, w, h, Math.ceil(ky/2));
-}
-
-function erodeMask(mask, w, h, r) {
-  const copy = new Uint8ClampedArray(mask);
-  for (let y = r; y < h - r; y++) {
-    for (let x = r; x < w - r; x++) {
-      let allSet = true;
-      outer: for (let dy = -r; dy <= r; dy++) {
-        for (let dx = -r; dx <= r; dx++) {
-          if (copy[(y+dy)*w + (x+dx)] === 0) {
-            allSet = false;
-            break outer;
-          }
-        }
-      }
-      mask[y * w + x] = allSet ? 255 : 0;
-    }
-  }
-}
-
-// ========== 轮廓检测（简化版）==========
-function findContours(mask, w, h) {
-  const visited = new Uint8ClampedArray(w * h);
-  const contours = [];
-
-  for (let y = 0; y < h; y++) {
-    for (let x = 0; x < w; x++) {
-      const idx = y * w + x;
-      if (mask[idx] === 255 && !visited[idx]) {
-        // BFS 找连通区域
-        let minX = x, minY = y, maxX = x, maxY = y;
-        const queue = [idx];
-        visited[idx] = 1;
-
-        while (queue.length > 0) {
-          const cur = queue.shift();
-          const cx = cur % w;
-          const cy = (cur - cx) / w;
-          minX = Math.min(minX, cx);
-          maxX = Math.max(maxX, cx);
-          minY = Math.min(minY, cy);
-          maxY = Math.max(maxY, cy);
-
-          for (const [dx, dy] of [[-1,0],[1,0],[0,-1],[0,1]]) {
-            const nx = cx + dx, ny = cy + dy;
-            if (nx >= 0 && nx < w && ny >= 0 && ny < h) {
-              const ni = ny * w + nx;
-              if (mask[ni] === 255 && !visited[ni]) {
-                visited[ni] = 1;
-                queue.push(ni);
-              }
-            }
-          }
-        }
-
-        contours.push({ minX, minY, maxX, maxY });
-      }
-    }
-  }
-  return contours;
-}
-
-// ========== Telea Inpainting（简化版，Canvas 实现）==========
-function inpaintRegion(ctx, width, height, mask, radius) {
-  const imageData = ctx.getImageData(0, 0, width, height);
-  const data = imageData.data;
-
-  // 找到所有需要修复的像素
-  const toInpaint = [];
-  for (let y = 0; y < height; y++) {
-    for (let x = 0; x < width; x++) {
-      if (mask[y * width + x] === 255) {
-        toInpaint.push([x, y]);
-      }
-    }
-  }
-
-  if (toInpaint.length === 0) return;
-
-  // 从外向内排序（边缘优先修复，效果更好）
-  // 计算每个像素到非掩码区域的距离
-  const dist = new Float32Array(width * height).fill(Infinity);
-  const queue = [];
-
-  for (let y = 0; y < height; y++) {
-    for (let x = 0; x < width; x++) {
-      if (mask[y * width + x] === 0) {
-        dist[y * width + x] = 0;
-        // 检查邻居是否在掩码内
-        for (const [dx, dy] of [[-1,0],[1,0],[0,-1],[0,1]]) {
-          const nx = x + dx, ny = y + dy;
-          if (nx >= 0 && nx < width && ny >= 0 && ny < height) {
-            if (mask[ny * width + nx] === 255) {
-              queue.push([nx, ny, 1]);
-            }
-          }
-        }
-      }
-    }
-  }
-
-  // BFS 计算距离
-  let head = 0;
-  while (head < queue.length) {
-    const [x, y, d] = queue[head++];
-    const idx = y * width + x;
-    if (d >= dist[idx]) continue;
-    dist[idx] = d;
-
-    for (const [dx, dy] of [[-1,0],[1,0],[0,-1],[0,1],[-1,-1],[1,-1],[-1,1],[1,1]]) {
-      const nx = x + dx, ny = y + dy;
-      if (nx >= 0 && nx < width && ny >= 0 && ny < height) {
-        if (mask[ny * width + nx] === 255 && dist[ny * width + nx] > d + 1) {
-          queue.push([nx, ny, d + 1]);
-        }
-      }
-    }
-  }
-
-  // 按距离从外到内排序
-  toInpaint.sort((a, b) => {
-    const da = dist[a[1] * width + a[0]];
-    const db = dist[b[1] * width + b[0]];
-    return da - db;
-  });
-
-  // 修复：从边缘向内，每个像素用周围已知像素的加权平均
-  // 修改掩码为已修复
-  const fixedMask = new Uint8ClampedArray(mask);
-
-  for (const [x, y] of toInpaint) {
-    const idx = (y * width + x) * 4;
-    let totalR = 0, totalG = 0, totalB = 0, totalW = 0;
-
-    // 收集周围已知像素
-    const r = radius;
-    for (let dy = -r; dy <= r; dy++) {
-      for (let dx = -r; dx <= r; dx++) {
-        const nx = x + dx, ny = y + dy;
-        if (nx >= 0 && nx < width && ny >= 0 && ny < height) {
-          if (fixedMask[ny * width + nx] === 0) {
-            // 距离越近权重越大
-            const dist2 = dx*dx + dy*dy;
-            const w = 1.0 / (dist2 + 1);
-            const ni = (ny * width + nx) * 4;
-            totalR += data[ni] * w;
-            totalG += data[ni+1] * w;
-            totalB += data[ni+2] * w;
-            totalW += w;
-          }
-        }
-      }
-    }
-
-    if (totalW > 0) {
-      data[idx] = totalR / totalW;
-      data[idx+1] = totalG / totalW;
-      data[idx+2] = totalB / totalW;
-      data[idx+3] = 255;
-    }
-
-    fixedMask[y * width + x] = 0; // 标记为已修复
-  }
-
-  ctx.putImageData(imageData, 0, 0);
-}
-
-// ========== 简化版修复（更快，效果稍差）==========
-function quickInpaint(ctx, width, height, mask, radius) {
-  // 直接用周围像素的颜色填充
-  const imageData = ctx.getImageData(0, 0, width, height);
-  const data = imageData.data;
-  const fixed = new Uint8ClampedArray(mask);
-
-  // 多轮修复（从外到内）
-  for (let pass = 0; pass < radius; pass++) {
-    for (let y = 1; y < height - 1; y++) {
-      for (let x = 1; x < width - 1; x++) {
-        if (fixed[y * width + x] === 255) {
-          const idx = (y * width + x) * 4;
-          let r = 0, g = 0, b = 0, c = 0;
-
-          for (const [dx, dy] of [[-1,0],[1,0],[0,-1],[0,1]]) {
-            const ni = ((y+dy) * width + (x+dx)) * 4;
-            if (fixed[(y+dy)*width + (x+dx)] === 0) {
-              r += data[ni]; g += data[ni+1]; b += data[ni+2]; c++;
-            }
-          }
-          if (c > 0) {
-            data[idx] = r / c;
-            data[idx+1] = g / c;
-            data[idx+2] = b / c;
-            fixed[y * width + x] = 0;
-          }
-        }
-      }
-    }
-    // 反向扫描
-    for (let y = height - 2; y > 0; y--) {
-      for (let x = width - 2; x > 0; x--) {
-        if (fixed[y * width + x] === 255) {
-          const idx = (y * width + x) * 4;
-          let r = 0, g = 0, b = 0, c = 0;
-          for (const [dx, dy] of [[-1,0],[1,0],[0,-1],[0,1]]) {
-            const ni = ((y+dy) * width + (x+dx)) * 4;
-            if (fixed[(y+dy)*width + (x+dx)] === 0) {
-              r += data[ni]; g += data[ni+1]; b += data[ni+2]; c++;
-            }
-          }
-          if (c > 0) {
-            data[idx] = r / c;
-            data[idx+1] = g / c;
-            data[idx+2] = b / c;
-            fixed[y * width + x] = 0;
-          }
-        }
-      }
-    }
-  }
-
-  ctx.putImageData(imageData, 0, 0);
-}
-
-// ========== 处理图片 ==========
-async function processImage(file) {
-  return new Promise((resolve) => {
-    const img = new Image();
-    img.onload = () => {
-      const w = img.width, h = img.height;
-      const canvas = document.createElement('canvas');
-      canvas.width = w;
-      canvas.height = h;
-      const ctx = canvas.getContext('2d');
-      ctx.drawImage(img, 0, 0);
-
-      setProgress(30, '检测字幕区域...');
-      const params = getParams();
-      const mask = detectSubtitleMask(ctx, w, h, params);
-
-      const maskPixels = mask.reduce((a, b) => a + (b > 0 ? 1 : 0), 0);
-      console.log(`检测到字幕像素: ${maskPixels} (${(maskPixels/(w*h)*100).toFixed(1)}%)`);
-
-      setProgress(50, '修复图像...');
-      setTimeout(() => {
-        // 使用高质量修复
-        inpaintRegion(ctx, w, h, mask, params.inpaintRadius);
-
-        // 再做一轮快速修复处理残余
-        const mask2 = detectSubtitleMask(ctx, w, h, params);
-        quickInpaint(ctx, w, h, mask2, Math.min(params.inpaintRadius, 5));
-
-        setProgress(100, '完成');
-        canvas.toBlob(blob => {
-          resolve({ blob, canvas, width: w, height: h });
-        }, 'image/png');
-      }, 50);
-    };
-    img.src = URL.createObjectURL(file);
-  });
-}
-
-// ========== 处理视频 ==========
-async function processVideo(file) {
-  const params = getParams();
-  const fps = params.frameRate;
-
-  return new Promise((resolve) => {
-    const video = document.createElement('video');
-    video.muted = true;
-    video.preload = 'auto';
-
-    video.onloadedmetadata = async () => {
-      const vw = video.videoWidth, vh = video.videoHeight;
-      const duration = video.duration;
-      const totalFrames = Math.ceil(duration * fps);
-
-      // 限制最大帧数
-      const maxFrames = Math.min(totalFrames, 300);
-      const actualFps = maxFrames / duration;
-
-      setProgress(5, `提取 ${maxFrames} 帧...`);
-
-      // 抽帧到离屏 Canvas
-      const frames = [];
-      const frameCanvas = document.createElement('canvas');
-      frameCanvas.width = vw;
-      frameCanvas.height = vh;
-      const frameCtx = frameCanvas.getContext('2d');
-
-      for (let i = 0; i < maxFrames; i++) {
-        const t = i / actualFps;
-        video.currentTime = t;
-        await new Promise(r => { video.onseeked = r; });
-        frameCtx.drawImage(video, 0, 0, vw, vh);
-
-        // 保存帧数据
-        const frameData = frameCtx.getImageData(0, 0, vw, vh);
-        frames.push({
-          data: new ImageData(
-            new Uint8ClampedArray(frameData.data),
-            vw, vh
-          ),
-          time: t
-        });
-
-        const pct = 5 + (10 * i / maxFrames);
-        setProgress(pct, `抽帧 ${i+1}/${maxFrames}`);
-      }
-
-      setProgress(15, `处理 ${maxFrames} 帧...`);
-
-      // 逐帧处理
-      const processedFrames = [];
-      for (let i = 0; i < frames.length; i++) {
-        const frame = frames[i];
-        const tmpCanvas = document.createElement('canvas');
-        tmpCanvas.width = vw;
-        tmpCanvas.height = vh;
-        const tmpCtx = tmpCanvas.getContext('2d');
-        tmpCtx.putImageData(frame.data, 0, 0);
-
-        // 检测 + 修复
-        const mask = detectSubtitleMask(tmpCtx, vw, vh, params);
-        inpaintRegion(tmpCtx, vw, vh, mask, params.inpaintRadius);
-
-        // 二次修复
-        const mask2 = detectSubtitleMask(tmpCtx, vw, vh, params);
-        quickInpaint(tmpCtx, vw, vh, mask2, Math.min(params.inpaintRadius, 5));
-
-        processedFrames.push({
-          canvas: tmpCanvas,
-          time: frame.time
-        });
-
-        const pct = 15 + (70 * (i + 1) / frames.length);
-        setProgress(pct, `处理帧 ${i+1}/${frames.length}`);
-      }
-
-      setProgress(85, '合成视频...');
-
-      // 用 MediaRecorder 合成视频
-      const outCanvas = document.createElement('canvas');
-      outCanvas.width = vw;
-      outCanvas.height = vh;
-      const outCtx = outCanvas.getContext('2d');
-
-      const stream = outCanvas.captureStream(0);
-      const recorder = new MediaRecorder(stream, {
-        mimeType: 'video/webm;codecs=vp9',
-        videoBitsPerSecond: 5000000
-      });
-
-      const chunks = [];
-      recorder.ondataavailable = e => { if (e.data.size > 0) chunks.push(e.data); };
-
-      const recordingDone = new Promise(r => {
-        recorder.onstop = () => {
-          const blob = new Blob(chunks, { type: 'video/webm' });
-          r(blob);
-        };
-      });
-
-      recorder.start();
-
-      // 逐帧绘制到输出 canvas
-      let frameIdx = 0;
-      const drawNextFrame = () => {
-        if (frameIdx >= processedFrames.length) {
-          recorder.stop();
-          return;
-        }
-        const pf = processedFrames[frameIdx];
-        outCtx.drawImage(pf.canvas, 0, 0);
-
-        // 按帧间隔计算下一帧时间
-        const nextTime = frameIdx < processedFrames.length - 1
-          ? processedFrames[frameIdx + 1].time - pf.time
-          : 1 / actualFps;
-
-        frameIdx++;
-        const pct = 85 + (10 * frameIdx / processedFrames.length);
-        setProgress(pct, `合成帧 ${frameIdx}/${processedFrames.length}`);
-
-        setTimeout(drawNextFrame, Math.max(1, nextTime * 1000 * 0.8));
-      };
-
-      drawNextFrame();
-      const videoBlob = await recordingDone;
-
-      setProgress(100, '完成');
-      resolve({ blob: videoBlob, width: vw, height: vh });
-    };
-
-    video.src = URL.createObjectURL(file);
-  });
-}
-
-// ========== 处理按钮 ==========
+// ========== Process button ==========
 btnProcess.addEventListener('click', async () => {
-  if (!sourceFile) return;
+  if (state.files.length === 0) return;
   btnProcess.disabled = true;
-  progressWrap.classList.add('show');
 
-  try {
-    let result;
-    if (currentMode === 'image' || sourceType === 'image') {
-      result = await processImage(sourceFile);
-    } else {
-      result = await processVideo(sourceFile);
-    }
-
-    resultBlob = result.blob;
-    resultURL = URL.createObjectURL(resultBlob);
-
-    // 显示结果
-    resultSection.classList.add('show');
-    compareWrap.innerHTML = '';
-    compareLabels.innerHTML = '';
-
-    if (currentMode === 'image' || sourceType === 'image') {
-      // 并排对比
-      const origImg = document.createElement('img');
-      origImg.src = URL.createObjectURL(sourceFile);
-      origImg.style.cssText = 'width:100%;display:block';
-
-      const resImg = document.createElement('img');
-      resImg.src = resultURL;
-      resImg.style.cssText = 'width:100%;display:block';
-
-      compareWrap.style.display = 'grid';
-      compareWrap.style.gridTemplateColumns = '1fr 1fr';
-      compareWrap.appendChild(origImg);
-      compareWrap.appendChild(resImg);
-
-      compareLabels.innerHTML = '<span>原图</span><span>处理后</span>';
-    } else {
-      const video = document.createElement('video');
-      video.src = resultURL;
-      video.controls = true;
-      video.style.cssText = 'width:100%;display:block';
-      compareWrap.appendChild(video);
-      compareLabels.innerHTML = '<span colspan="2" style="grid-column:1/-1">处理后的视频</span>';
-    }
-  } catch (err) {
-    console.error(err);
-    setProgress(0, '处理出错: ' + err.message);
+  for (let i = 0; i < state.files.length; i++) {
+    if (state.files[i].resultBlob) continue;
+    selectTask(i);
+    setProgress(0, `处理第 ${i+1}/${state.files.length} 个文件...`);
+    await processFile(state.files[i]);
   }
+
+  // 显示结果
+  const last = state.files[state.files.length - 1];
+  if (last.resultURL) {
+    resultCompare.innerHTML = '';
+    if (last.type === 'image') {
+      const orig = document.createElement('img');
+      orig.src = URL.createObjectURL(last.file);
+      const res = document.createElement('img');
+      res.src = last.resultURL;
+      resultCompare.innerHTML = '<div><div class="label">原图</div></div><div><div class="label">处理后</div></div>';
+      resultCompare.children[0].prepend(orig);
+      resultCompare.children[1].prepend(res);
+    } else {
+      const res = document.createElement('video');
+      res.src = last.resultURL;
+      res.controls = true;
+      resultCompare.innerHTML = '<div style="grid-column:1/-1"><div class="label">处理后的视频</div></div>';
+      resultCompare.children[0].prepend(res);
+    }
+    resultSection.classList.add('show');
+  }
+
+  btnProcess.disabled = false;
 });
 
-// ========== 下载 ==========
-btnDownload.addEventListener('click', () => {
-  if (!resultBlob) return;
+// ========== Download ==========
+$('#btnDownload').addEventListener('click', () => {
+  const f = state.files[state.activeIndex] || state.files[state.files.length - 1];
+  if (!f || !f.resultURL) return;
   const a = document.createElement('a');
-  a.href = resultURL;
-  a.download = currentMode === 'image' || sourceType === 'image'
-    ? 'qushuiyin_result.png'
-    : 'qushuiyin_result.webm';
+  a.href = f.resultURL;
+  a.download = f.type === 'video' ? 'result.webm' : 'result.png';
   a.click();
 });
+$('#btnCloseResult').addEventListener('click', () => resultSection.classList.remove('show'));
+resultSection.addEventListener('click', e => { if (e.target === resultSection) resultSection.classList.remove('show'); });
 
-// ========== 重置 ==========
-function resetAll() {
-  sourceFile = null;
-  resultBlob = null;
-  if (resultURL) { URL.revokeObjectURL(resultURL); resultURL = null; }
-  fileInput.value = '';
-  uploadZone.style.display = '';
-  previewSection.style.display = 'none';
-  previewSection.innerHTML = '<canvas id="previewCanvas"></canvas>';
-  btnProcess.disabled = true;
-  btnReset.style.display = 'none';
-  resultSection.classList.remove('show');
-  progressWrap.classList.remove('show');
-  videoControls.style.display = 'none';
+// ========== Toast ==========
+function showToast(msg) {
+  const t = $('#toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2000);
 }
 
-btnReset.addEventListener('click', resetAll);
-btnReset2.addEventListener('click', resetAll);
+// ========== Init ==========
+updateManualOptions();
 </script>
 </body>
 </html>
